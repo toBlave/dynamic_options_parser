@@ -1,13 +1,14 @@
 # This is a wrpper around the standard Ruby OptionsParser. It's designed to make it easier to declare command line options for Command Line ruby scripts.
 
 # Usage
+``` ruby
+require 'dynamic_options_parser'
 
-`require 'dynamic_options_parser'`
-``
-`options_parser = DynamicOptionsParser.new`
-`options_parser.add_option(:input_file, :string, "Input File to read into system")`
-`options_parser.add_option(:ouput_file, :string, "Output File to read into system")`
-`cli_options = options_parser.parse`
+options_parser = DynamicOptionsParser.new
+options_parser.add_option(:input_file, :string, "Input File to read into system")
+options_parser.add_option(:ouput_file, :string, "Output File to read into system")
+cli_options = options_parser.parse
+```
 
 If this code is included in a ruby script, you can now include command line options when running the script. In this case the accpeted options would be:
 
