@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = 'dynamic_options_parser'
-  s.version     = '0.0.1'
-  s.date        = '2017-11-16'
+  s.version     = '0.0.2'
+  s.date        = '2017-11-17'
   s.summary     = "A wrapper for standard ruby OptionParser to make it easier to define and interpet command line options"
   s.description = "Dynamic Option Parser - A wrapper around ruby's OptionParser"
   s.authors     = ["Steve Vanspall"]

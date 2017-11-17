@@ -8,7 +8,7 @@ class DynamicOptionsParser
   attr_reader :options
 
   def infer_class(option_type)
-    return options_type if option_type.is_a?(Class)
+    return option_type if option_type.is_a?(Class)
 
     if(option_type.to_s == 'read_file')
       ReadFile
