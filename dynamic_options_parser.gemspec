@@ -8,5 +8,7 @@ Gem::Specification.new do |s|
   s.email       = 'steve@vanspall.id.au'
   s.files       = ["lib/dynamic_options_parser.rb"]
   s.add_dependency "activesupport"
+  s.add_development_dependency "rspec"
+  s.add_development_dependency "byebug"
   s.license       = 'MIT'
 end

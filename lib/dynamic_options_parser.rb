@@ -5,7 +5,7 @@ require 'optparse'
 require 'active_support/all'
 
 class DynamicOptionsParser
-  attr_reader :options
+  attr_reader :options, :cli_description
 
   def infer_class(option_type)
     return option_type if option_type.is_a?(Class)
@@ -17,11 +17,21 @@ class DynamicOptionsParser
     end
   end
 
+  def cli_description=(cli_description)
+    @cli_description = cli_description
+  end
+
+  def assign_to(assign_to)
+    @options = assign_to
+  end
+
   def initialize(setup = {})
-    @options = setup.delete(:assign_to) || OpenStruct.new
-    description = setup.delete(:cli_description)
+    @defaults = {}
+    cli_description = setup.delete(:_cli_description)
+    assign_to(setup.delete(:_assign_to))
 
     @opt_parse_setup = nil
+    @setup = setup
 
     @op = OptionParser.new do |opts|
       @opt_parse_setup = opts
@@ -42,25 +52,18 @@ class DynamicOptionsParser
         ReadFile.new(value)
       end
 
-      opts.banner = "#{description ? "#{description}\n" : ""}Usage: ruby #{File.basename(__FILE__)} [options]"
-
       @first_letters = {}
 
       opts.on("-h", "--help", "Prints this help") do
-        puts @op
-        exit
+        show_help_text_and_exit
       end
-    end
-
-    setup.each do |key, details|
-      add_option(*([key] + details))
     end
   end
 
   def add_option(option_name, option_type, description = nil, default = nil)
     method_name = option_name.to_s.gsub(/\W/, '_')
 
-    @options.send("#{method_name}=", default)   
+    @defaults[method_name] = default
 
     char = option_name.to_s.gsub(/[^A-Za-z]/, '').chars.detect do |c|
       !@first_letters[c.to_s]
@@ -86,6 +89,16 @@ class DynamicOptionsParser
   end
 
   def parse
+    @op.banner = "#{cli_description ? "#{cli_description}\n" : ""}Usage: ruby #{File.basename(__FILE__)} [options]"
+
+    @options ||= OpenStruct.new
+
+    set_defaults
+
+    @setup.each do |key, details|
+      add_option(*([key] + details))
+    end
+
     @op.parse!
     options   
   end
@@ -97,6 +110,19 @@ class DynamicOptionsParser
       @path = path
 
       raise "#{path} does not exist" unless File.exists?(path)
+    end
+  end
+
+  private 
+
+  def show_help_text_and_exit
+    puts @op
+    exit
+  end
+
+  def set_defaults
+    @defaults.each do |method_name, default|
+      @options.send("#{method_name}=", default)   
     end
   end
 end
