@@ -109,7 +109,7 @@ class DynamicOptionsParser
     def initialize(path)
       @path = path
 
-      raise "#{path} does not exist" unless File.exists?(path)
+      raise ArgumentError.new("#{path} does not exist") unless File.exists?(path)
     end
   end
 
