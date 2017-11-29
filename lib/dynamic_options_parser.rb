@@ -92,11 +92,11 @@ class DynamicOptionsParser
 
     @options ||= OpenStruct.new
 
-    set_defaults
-
     @setup.each do |key, details|
       add_option(*([key] + details))
     end
+
+    set_defaults
 
     @op.parse!
     options   
