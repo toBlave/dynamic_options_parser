@@ -2,6 +2,7 @@ require 'ostruct'
 require 'bigdecimal'
 require 'optparse'
 require 'active_support/all'
+require 'io/console'
 
 class DynamicOptionsParser
   attr_reader :options, :cli_description
@@ -81,6 +82,8 @@ class DynamicOptionsParser
     option_type = infer_class(option_type)
 
     @op.on("-#{char}#{variable_name}", "--#{option_name.to_s.gsub(/_/, '-')} #{variable_name}", option_type, description) do |value|
+      value = yield(value) if block_given?
+
       @options.send("#{method_name}=", value)
     end
 
