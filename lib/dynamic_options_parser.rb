@@ -26,6 +26,7 @@ class DynamicOptionsParser
   end
 
   def initialize(setup = {})
+    @main_path = caller_locations.detect{|l| l.base_label.match(/<main>/)}.try(:path) || 'main_file.rb'
     @defaults = {}
     cli_description = setup.delete(:_cli_description)
     assign_to(setup.delete(:_assign_to))
@@ -91,7 +92,7 @@ class DynamicOptionsParser
   end
 
   def parse
-    @op.banner = "#{cli_description ? "#{cli_description}\n" : ""}Usage: ruby #{File.basename(__FILE__)} [options]"
+    @op.banner = "#{cli_description ? "#{cli_description}\n" : ""}Usage: ruby #{@main_path} [options]"
 
     @options ||= OpenStruct.new
 
