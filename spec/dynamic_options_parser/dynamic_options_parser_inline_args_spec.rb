@@ -43,7 +43,7 @@ context DynamicOptionsParser, 'with inline initialisation args' do
         dynamic_options_parser.set_argv(help_args)
       end
 
-      it "should accept the options and print the help option details" do 
+      it "should accept the options and print the help option details" do
         dynamic_options_parser.parse
         expect(command_result).to match(/-h, --help\s+Prints this help/)
       end
@@ -88,7 +88,7 @@ context DynamicOptionsParser, 'with inline initialisation args' do
               '-m',
               'Option 1',
               '-y',
-              'Option 2' 
+              'Option 2'
             ])
           end
 
@@ -107,7 +107,7 @@ context DynamicOptionsParser, 'with inline initialisation args' do
               '--my-option',
               'Option 1',
               '--your-option',
-              'Option 2' 
+              'Option 2'
             ])
           end
 
@@ -245,7 +245,7 @@ context DynamicOptionsParser, 'with inline initialisation args' do
           end
 
           after do
-            FileUtils.rm_f(@tmp_file)           
+            FileUtils.rm_f(@tmp_file)
           end
 
           it 'should parse the value to a read file where set to a valid value' do
@@ -266,6 +266,112 @@ context DynamicOptionsParser, 'with inline initialisation args' do
             ])
 
             expect{dynamic_options_parser.parse}.to raise_error(ArgumentError)
+          end
+        end
+
+        context 'Array' do
+          before do
+            initialisation_args.merge!({my_option: [:array, "My Option"]})
+          end
+
+          it 'should parse the value to a read file where set to a valid value' do
+            dynamic_options_parser.set_argv([
+              '-m',
+              "1,2,3,4"
+            ])
+
+            expect(parsed_options.my_option.class).to eq(Array)
+            expect(parsed_options.my_option).to eq(%w[1 2 3 4])
+          end
+
+          context 'Array sub type' do
+            context 'ReadFile' do
+              before do
+                @tmp_file = File.join(Dir.tmpdir, "tmp_dyn_options_spec_#{DateTime.now.strftime('%Y-%m-%d%H%M%S')}")
+                @tmp_file_2 = File.join(Dir.tmpdir, "tmp_dyn_options_spec_#{DateTime.now.strftime('%Y-%m-%d%H%M%S')}_2")
+                initialisation_args.merge!({my_option: ['array:read_file', "My Option"]})
+              end
+
+              after do
+                FileUtils.rm_f(@tmp_file)
+                FileUtils.rm_f(@tmp_file_2)
+              end
+
+              before do
+                File.write(@tmp_file, ' ')
+                File.write(@tmp_file_2, ' ')
+                dynamic_options_parser.set_argv([
+                  '-m',
+                  "#{@tmp_file},#{@tmp_file_2}"
+                ])
+              end
+
+              it 'should parse the base value to an array' do
+                expect(parsed_options.my_option.class).to eq(Array)
+              end
+
+              it 'should have 2 ReadFile instances in the array' do
+                expect(parsed_options.my_option.collect{|i| i.class }).to eq([DynamicOptionsParser::ReadFile, DynamicOptionsParser::ReadFile])
+              end
+
+              it 'should assign each item in the cli option to the path of the read files' do
+                expect(parsed_options.my_option.collect(&:path)).to eq([@tmp_file, @tmp_file_2])
+              end
+
+              it 'should raise an invalid argument error when file 1 does not existt' do
+                FileUtils.rm_f(@tmp_file)
+
+                expect{dynamic_options_parser.parse}.to raise_error(ArgumentError)
+              end
+
+              it 'should raise an invalid argument error when file 1 does not existt' do
+                FileUtils.rm_f(@tmp_file_2)
+
+                expect{dynamic_options_parser.parse}.to raise_error(ArgumentError)
+              end
+            end
+
+            context 'BigDecimal' do
+              let(:decimal_args) do
+                "2.45,3.45"
+              end
+
+              before do
+                dynamic_options_parser.set_argv([
+                  "-m#{decimal_args}"
+                ])
+
+                initialisation_args.merge!({my_option: ['array:big_decimal', "My option"]})
+              end
+
+              it 'should parse the values to a big decimal array where set to a valid value' do
+                expect(dynamic_options_parser.parse.my_option.collect(&:class)).to eq([BigDecimal, BigDecimal])
+              end
+
+              it 'should parse the values to the correct values specified on cli where set to a valid value' do
+                expect(dynamic_options_parser.parse.my_option.collect{|v| v.to_s('F')}).to eq(%w[2.45 3.45])
+              end
+
+              context 'when first value is invalid' do
+                let(:decimal_args) do
+                  "aabb,3.45"
+                end
+
+                it 'should raise an error' do
+                  expect{dynamic_options_parser.parse}.to raise_error(ArgumentError)
+                end
+              end
+
+              context 'when second value is invalid' do
+                let(:decimal_args) do
+                  "2.45,xxcc"
+                end
+
+                it 'should raise an error' do
+                  expect{dynamic_options_parser.parse}.to raise_error(ArgumentError)
+                end
+              end
+            end
           end
         end
       end

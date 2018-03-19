@@ -39,7 +39,7 @@ context DynamicOptionsParser do
         dynamic_options_parser.set_argv(help_args)
       end
 
-      it "should accept the options and print the help option details" do 
+      it "should accept the options and print the help option details" do
         dynamic_options_parser.parse
         expect(command_result).to match(/-h, --help\s+Prints this help/)
       end
@@ -85,7 +85,7 @@ context DynamicOptionsParser do
               '-m',
               'Option 1',
               '-y',
-              'Option 2' 
+              'Option 2'
             ])
           end
 
@@ -104,7 +104,7 @@ context DynamicOptionsParser do
               '--my-option',
               'Option 1',
               '--your-option',
-              'Option 2' 
+              'Option 2'
             ])
           end
 
@@ -190,6 +190,30 @@ context DynamicOptionsParser do
           end
         end
 
+        context 'DirGlob' do
+          let(:dirglob) do
+            "my_dirs*"
+          end
+
+          let(:glob_result) do
+            ['/tmp/file_1', '/tmp/file_2']
+          end
+
+          before do
+            dynamic_options_parser.add_option(:my_option, :dir_glob, "My option")
+
+            expect(Dir).to receive(:glob).with(dirglob).and_return(glob_result)
+          end
+
+          it 'should parse the value to a date where set to a valid value' do
+            dynamic_options_parser.set_argv([
+              "-m#{dirglob}"
+            ])
+
+            expect(parsed_options.my_option).to eq(['/tmp/file_1', '/tmp/file_2'])
+          end
+        end
+
         context 'Date' do
           before do
             dynamic_options_parser.add_option(:my_option, :date, "My option")
@@ -243,7 +267,7 @@ context DynamicOptionsParser do
           end
 
           after do
-            FileUtils.rm_f(@tmp_file)           
+            FileUtils.rm_f(@tmp_file)
           end
 
           it 'should parse the value to a read file where set to a valid value' do
