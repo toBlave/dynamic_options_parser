@@ -55,6 +55,10 @@ class DynamicOptionsParser
         ReadFile.new(value)
       end
 
+      opts.accept(Symbol) do |value|
+        value.to_sym
+      end
+
       @first_letters = {}
 
       opts.on("-h", "--help", "Prints this help") do

@@ -284,6 +284,22 @@ context DynamicOptionsParser, 'with inline initialisation args' do
             expect(parsed_options.my_option).to eq(%w[1 2 3 4])
           end
 
+          context 'Symbol' do
+            before do
+              initialisation_args.merge!({my_option: [:symbol, "My Option"]})
+            end
+
+            it 'should parse the value to a read file where set to a valid value' do
+              dynamic_options_parser.set_argv([
+                '-m',
+                "my_value"
+              ])
+
+              expect(parsed_options.my_option).to eq(:my_value)
+            end
+          end
+
+
           context 'Array sub type' do
             context 'ReadFile' do
               before do
