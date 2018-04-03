@@ -299,6 +299,111 @@ context DynamicOptionsParser, 'with inline initialisation args' do
             end
           end
 
+          context 'Boolean' do
+            before do
+              initialisation_args.merge!({my_option: [:boolean, "My Option"]})
+            end
+
+            it 'should parse the value to a true boolean is set to true' do
+              dynamic_options_parser.set_argv([
+                '-m',
+                "true"
+              ])
+
+              expect(parsed_options.my_option).to eq(true)
+            end
+
+            it 'should parse the value to a false boolean is set to false' do
+              dynamic_options_parser.set_argv([
+                '-m',
+                "false"
+              ])
+
+              expect(parsed_options.my_option).to eq(false)
+            end
+
+            it 'should parse the value to a TRUE boolean is set to TRUE' do
+              dynamic_options_parser.set_argv([
+                '-m',
+                "TRUE"
+              ])
+
+              expect(parsed_options.my_option).to eq(true)
+            end
+
+            it 'should parse the value to a FALSE boolean is set to FALSE' do
+              dynamic_options_parser.set_argv([
+                '-m',
+                "FALSE"
+              ])
+
+              expect(parsed_options.my_option).to eq(false)
+            end
+
+            it 'should parse the value to a t boolean is set to t' do
+              dynamic_options_parser.set_argv([
+                '-m',
+                "t"
+              ])
+
+              expect(parsed_options.my_option).to eq(true)
+            end
+
+            it 'should parse the value to a f boolean is set to f' do
+              dynamic_options_parser.set_argv([
+                '-m',
+                "f"
+              ])
+
+              expect(parsed_options.my_option).to eq(false)
+            end
+
+            it 'should parse the value to a t boolean is set to T' do
+              dynamic_options_parser.set_argv([
+                '-m',
+                "T"
+              ])
+
+              expect(parsed_options.my_option).to eq(true)
+            end
+
+            it 'should parse the value to a f boolean is set to F' do
+              dynamic_options_parser.set_argv([
+                '-m',
+                "F"
+              ])
+
+              expect(parsed_options.my_option).to eq(false)
+            end
+
+
+            it 'should parse the value to a true boolean is set to 1' do
+              dynamic_options_parser.set_argv([
+                '-m',
+                "1"
+              ])
+
+              expect(parsed_options.my_option).to eq(true)
+            end
+
+            it 'should parse the value to a false boolean is set to 0' do
+              dynamic_options_parser.set_argv([
+                '-m',
+                "0"
+              ])
+
+              expect(parsed_options.my_option).to eq(false)
+            end
+
+            it 'should raise an error is set to anything but true, false, 1 or 0' do
+              dynamic_options_parser.set_argv([
+                '-m',
+                "whatever"
+              ])
+
+              expect{ parsed_options }.to raise_error('Invalid boolean value "whatever"')
+            end
+          end
 
           context 'Array sub type' do
             context 'ReadFile' do

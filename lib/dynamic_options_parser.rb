@@ -12,8 +12,11 @@ class DynamicOptionsParser
     return Array if option_type.to_s.match(/^array:?/)
     return Array if option_type.to_s == 'dir_glob'
 
-    if(option_type.to_s == 'read_file')
+    case option_type.to_s
+    when 'read_file'
       ReadFile
+    when 'boolean'
+      BooleanParser
     else
       Class.const_get(option_type.to_s.classify)
     end
@@ -53,6 +56,10 @@ class DynamicOptionsParser
 
       opts.accept(ReadFile) do |value|
         ReadFile.new(value)
+      end
+
+      opts.accept(BooleanParser) do |value|
+        BooleanParser.new(value).parsed_value
       end
 
       opts.accept(Symbol) do |value|
@@ -125,6 +132,23 @@ class ReadFile
     @path = path
 
     raise ArgumentError.new("#{path} does not exist") unless File.exists?(path)
+  end
+end
+
+class BooleanParser
+  def initialize(value)
+    @value = value
+  end
+
+  def parsed_value
+    case @value
+    when '1', 'true', 'TRUE', 't', 'T'
+      true
+    when '0', 'false', 'FALSE', 'f', 'F'
+      false
+    else
+      raise "Invalid boolean value #{@value.inspect}"
+    end
   end
 end
 
