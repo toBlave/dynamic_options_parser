@@ -252,6 +252,29 @@ context DynamicOptionsParser, 'with inline initialisation args' do
           end
         end
 
+        context 'Time' do
+          before do
+            initialisation_args.merge!({my_option: [:time, "My Option"]})
+          end
+
+          it 'should parse the value to a date_time where set to a valid value' do
+            dynamic_options_parser.set_argv([
+              '-m2015-12-13T15:00:00'
+            ])
+
+            expect(parsed_options.my_option.class).to eq(Time)
+            expect(parsed_options.my_option).to eq(Time.parse('2015-12-13T15:00:00'))
+          end
+
+          it 'should raise an invalid argument error when set to an invalid value' do
+            dynamic_options_parser.set_argv([
+              '-maxdcv'
+            ])
+
+            expect{dynamic_options_parser.parse}.to raise_error(ArgumentError)
+          end
+        end
+
         context 'dir' do
           before do
             @tmp_file = File.join(Dir.tmpdir, "tmp_dyn_options_spec_#{DateTime.now.strftime('%Y-%m-%d%H%M%S')}")

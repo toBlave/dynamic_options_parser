@@ -52,6 +52,10 @@ class DynamicOptionsParser
         DateTime.parse(value)
       end
 
+      opts.accept(Time) do |value|
+        Time.parse(value)
+      end
+
       opts.accept(Date) do |value|
         Date.parse(value)
       end
