@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    dynamic_options_parser (0.1.1)
+    dynamic_options_parser (0.1.3)
       activesupport
 
 GEM

@@ -11,6 +11,7 @@ class DynamicOptionsParser
     return option_type if option_type.is_a?(Class)
     return Array if option_type.to_s.match(/^array:?/)
     return Array if option_type.to_s == 'dir_glob'
+    return String if option_type.to_s == 'dir'
 
     case option_type.to_s
     when 'read_file'
@@ -109,6 +110,9 @@ class DynamicOptionsParser
         value = process_array_with_sub_type(option_type, value)
       elsif(option_type.to_s == 'dir_glob')
         value = Dir.glob(value[0])
+      elsif(option_type.to_s == 'dir')
+        raise "The path: #{value} does not exist" unless File.exist?(value)
+        raise "The path: #{value} is not a directory" unless File.directory?(value)
       end
 
       value = yield(value) if block_given?

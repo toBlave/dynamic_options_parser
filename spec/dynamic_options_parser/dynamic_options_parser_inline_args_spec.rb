@@ -252,6 +252,32 @@ context DynamicOptionsParser, 'with inline initialisation args' do
           end
         end
 
+        context 'dir' do
+          before do
+            @tmp_file = File.join(Dir.tmpdir, "tmp_dyn_options_spec_#{DateTime.now.strftime('%Y-%m-%d%H%M%S')}")
+            initialisation_args.merge!({my_option: [:dir, "My Option"]})
+            dynamic_options_parser.set_argv(['-m', @tmp_file])
+          end
+
+          after do
+            FileUtils.rm_rf(@tmp_file)
+          end
+
+          it 'should raise an error where the path represented by the value does not exist' do
+            expect{dynamic_options_parser.parse}.to raise_error "The path: #{@tmp_file} does not exist"
+          end
+
+          it 'should raise an error where the path represented by the value exists but is not a directory' do
+            File.write(@tmp_file, ' ')
+            expect{dynamic_options_parser.parse}.to raise_error "The path: #{@tmp_file} is not a directory"
+          end
+
+          it 'should parse the value to a string where the path exists and is a directory' do
+            FileUtils.mkdir_p(@tmp_file)
+            expect(dynamic_options_parser.parse.my_option).to eq(@tmp_file)
+          end
+        end
+
         context 'ReadFile' do
           before do
             @tmp_file = File.join(Dir.tmpdir, "tmp_dyn_options_spec_#{DateTime.now.strftime('%Y-%m-%d%H%M%S')}")
