@@ -39,7 +39,11 @@ context DynamicOptionsParser, 'with inline initialisation args' do
 
     context "the help text" do
       before do
-        initialisation_args.merge!({option_1: [:string, "My first option"], option_2: [:array, "My second option"]})
+        initialisation_args.merge!({
+          option_1: [:string, "My first option"],
+          option_2: [:array, "My second option", {required: true}],
+          option_3: [:string, 'My third option', {default: 'third_default'}]
+        })
         dynamic_options_parser.set_argv(help_args)
       end
 
@@ -55,7 +59,17 @@ context DynamicOptionsParser, 'with inline initialisation args' do
 
       it "should have the option 2 details" do
         dynamic_options_parser.parse
-        expect(command_result).to match(/-p, --option-2 OPTION_2\s+My second option/)
+        expect(command_result).to match(/-p,\s+--option-2 OPTION_2\s+My second option/)
+      end
+
+      it "should mark the options 2 details as required" do
+        dynamic_options_parser.parse
+        expect(command_result).to match(/-p,\s+--option-2 OPTION_2\s+My second option \(required\)/)
+      end
+
+      it 'should show the default for option 3' do
+        dynamic_options_parser.parse
+        expect(command_result).to match(/-t,\s+--option-3 OPTION_3\s+My third option \(default: third_default\)/)
       end
 
       context "with a cli description set" do
