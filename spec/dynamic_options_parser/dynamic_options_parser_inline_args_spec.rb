@@ -318,8 +318,8 @@ context DynamicOptionsParser, 'with inline initialisation args' do
               @tmp_file
             ])
 
-            expect(parsed_options.my_option.class).to eq(DynamicOptionsParser::ReadFile)
-            expect(parsed_options.my_option.path).to eq(@tmp_file)
+            expect(parsed_options.my_option.class).to eq(String)
+            expect(parsed_options.my_option).to eq(@tmp_file)
           end
 
           it 'should raise an invalid argument error when no file exists at that path' do
@@ -328,7 +328,7 @@ context DynamicOptionsParser, 'with inline initialisation args' do
               @tmp_file
             ])
 
-            expect{dynamic_options_parser.parse}.to raise_error(ArgumentError)
+            expect{dynamic_options_parser.parse}.to raise_error("The path: #{@tmp_file} does not exist")
           end
         end
 
@@ -495,23 +495,23 @@ context DynamicOptionsParser, 'with inline initialisation args' do
               end
 
               it 'should have 2 ReadFile instances in the array' do
-                expect(parsed_options.my_option.collect{|i| i.class }).to eq([DynamicOptionsParser::ReadFile, DynamicOptionsParser::ReadFile])
+                expect(parsed_options.my_option.collect{|i| i.class }).to eq([String, String])
               end
 
               it 'should assign each item in the cli option to the path of the read files' do
-                expect(parsed_options.my_option.collect(&:path)).to eq([@tmp_file, @tmp_file_2])
+                expect(parsed_options.my_option).to eq([@tmp_file, @tmp_file_2])
               end
 
               it 'should raise an invalid argument error when file 1 does not existt' do
                 FileUtils.rm_f(@tmp_file)
 
-                expect{dynamic_options_parser.parse}.to raise_error(ArgumentError)
+                expect{dynamic_options_parser.parse}.to raise_error("The path: #{@tmp_file} does not exist")
               end
 
-              it 'should raise an invalid argument error when file 1 does not existt' do
+              it 'should raise an invalid argument error when file 2 does not existt' do
                 FileUtils.rm_f(@tmp_file_2)
 
-                expect{dynamic_options_parser.parse}.to raise_error(ArgumentError)
+                expect{dynamic_options_parser.parse}.to raise_error("The path: #{@tmp_file_2} does not exist")
               end
             end
 

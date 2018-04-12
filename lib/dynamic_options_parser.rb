@@ -11,11 +11,9 @@ class DynamicOptionsParser
     return option_type if option_type.is_a?(Class)
     return Array if option_type.to_s.match(/^array:?/)
     return Array if option_type.to_s == 'dir_glob'
-    return String if option_type.to_s == 'dir'
+    return String if %w[read_file dir].include?(option_type.to_s)
 
     case option_type.to_s
-    when 'read_file'
-      ReadFile
     when 'boolean'
       BooleanParser
     else
@@ -112,11 +110,8 @@ class DynamicOptionsParser
     @op.on("-#{char}#{variable_name}", "--#{option_name.to_s.gsub(/_/, '-')} #{variable_name}", option_type_class, description) do |value|
       if(option_type.to_s.match(/^array:/))
         value = process_array_with_sub_type(option_type, value)
-      elsif(option_type.to_s == 'dir_glob')
-        value = Dir.glob(value[0])
-      elsif(option_type.to_s == 'dir')
-        raise "The path: #{value} does not exist" unless File.exist?(value)
-        raise "The path: #{value} is not a directory" unless File.directory?(value)
+      else
+        value = process_individual_item_type(option_type, value)
       end
 
       value = yield(value) if block_given?
@@ -125,6 +120,19 @@ class DynamicOptionsParser
     end
 
     self
+  end
+
+  def process_individual_item_type(option_type, value)
+      if(option_type.to_s == 'dir_glob')
+        return Dir.glob(value[0])
+      elsif(option_type.to_s == 'dir')
+        raise "The path: #{value} does not exist" unless File.exist?(value)
+        raise "The path: #{value} is not a directory" unless File.directory?(value)
+      elsif(option_type.to_s == 'read_file')
+        raise "The path: #{value} does not exist" unless File.exist?(value)
+      end
+
+      return value
   end
 
   def parse
@@ -176,12 +184,20 @@ class DynamicOptionsParser
 
   def process_array_with_sub_type(option_type, value)
     sub_type = option_type.to_s.match(/^array:(\w+)/)[1]
-    value.collect{ |v| infer_class(sub_type).new(v) }
+    klass = infer_class(sub_type)
+
+    value.collect do |v|
+      if(klass == String)
+        process_individual_item_type(sub_type, v)
+      else
+        klass.new(v)
+      end
+    end
   end
 
-  def show_help_text_and_exit
+  def show_help_text_and_exit(exit_code = 0)
     puts @op
-    exit
+    exit exit_code
   end
 
   def validate_options
@@ -192,7 +208,10 @@ class DynamicOptionsParser
       required && !@options.send(method_name)
     end
 
-    raise "#{missing_options.to_sentence.gsub(/, and/, ' and')} must be specified, use --help for options" unless missing_options.empty?
+    unless missing_options.empty?
+     puts "#{missing_options.to_sentence.gsub(/, and/, ' and')} must be specified"
+     show_help_text_and_exit 1
+    end
   end
 
   def set_defaults

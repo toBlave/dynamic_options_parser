@@ -277,8 +277,8 @@ context DynamicOptionsParser do
               @tmp_file
             ])
 
-            expect(parsed_options.my_option.class).to eq(DynamicOptionsParser::ReadFile)
-            expect(parsed_options.my_option.path).to eq(@tmp_file)
+            expect(parsed_options.my_option.class).to eq(String)
+            expect(parsed_options.my_option).to eq(@tmp_file)
           end
 
           it 'should raise an invalid argument error when no file exists at that path' do
@@ -287,7 +287,7 @@ context DynamicOptionsParser do
               @tmp_file
             ])
 
-            expect{dynamic_options_parser.parse}.to raise_error(ArgumentError)
+            expect{dynamic_options_parser.parse}.to raise_error("The path: #{@tmp_file} does not exist")
           end
         end
       end

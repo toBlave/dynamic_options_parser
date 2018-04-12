@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'fileutils'
+require 'byebug'
 
 context DynamicOptionsParser do
   let(:output) do
@@ -8,12 +9,13 @@ context DynamicOptionsParser do
 
   before do
     @original_stdio = $stdout
-    $stdout = StringIO.new
+    $stdout = output
   end
 
   after do
     $stdout = @original_stdio
   end
+
 
   let(:command_result) do
     output.string
@@ -30,15 +32,31 @@ context DynamicOptionsParser do
         dynamic_options_parser.add_option(:option_2, :array, "My second option")
       end
 
-      it 'should raise an error if the required option has not been specified' do
-        dynamic_options_parser.set_argv(['-p', "1,2"])
-        expect { dynamic_options_parser.parse }.to raise_error 'option_1 must be specified, use --help for options'
+      context 'when the required option has not been specified' do
+        before do
+          dynamic_options_parser.set_argv(['-p', "1,2"])
+          dynamic_options_parser.parse
+        end
+
+        it 'should exit the runtime' do
+          expect(dynamic_options_parser).to have_exited_system
+        end
+
+        it 'should output that the required field is missing' do
+          dynamic_options_parser.parse
+          expect(command_result).to match(/option_1 must be specified/)
+        end
+
+        it 'should output the help text' do
+          dynamic_options_parser.parse
+          expect(command_result).to match(/--help\s+Prints this help/)
+        end
       end
 
-      it 'should not raise an error if the required option has been specified' do
+      it 'should not exit if the required option has been specified' do
         dynamic_options_parser.set_argv(['-o', "required_option"])
-        options = nil
-        expect { options = dynamic_options_parser.parse }.not_to raise_error
+        options = dynamic_options_parser.parse
+        expect(dynamic_options_parser).not_to have_exited_system
         expect(options.option_1).to eq('required_option')
       end
     end
@@ -51,31 +69,59 @@ context DynamicOptionsParser do
         dynamic_options_parser.add_option(:option_4, :big_decimal, "My fourth option")
       end
 
-      it 'should raise an error if one required option has not been specified' do
+      it 'should exit if one required option has not been specified' do
         dynamic_options_parser.set_argv(['-o', "required_string", '-t', '1.5', '-i', '23.4'])
-        expect { dynamic_options_parser.parse }.to raise_error 'option_2 must be specified, use --help for options'
+        expect(dynamic_options_parser).not_to have_exited_system
       end
 
-      it 'should raise an error if two required options have not been specified' do
-        dynamic_options_parser.set_argv(['-t', '1.5', '-i', '23.4'])
-        expect { dynamic_options_parser.parse }.to raise_error 'option_1 and option_2 must be specified, use --help for options'
+      context 'if two required options have not been specified' do
+        before do
+          dynamic_options_parser.set_argv(['-t', '1.5', '-i', '23.4'])
+          dynamic_options_parser.parse
+        end
+
+        it 'exits the system' do
+          expect(dynamic_options_parser).to have_exited_system
+        end
+
+        it 'displays a message saying that the required options are missing' do
+          expect(command_result).to match(/option_1 and option_2 must be specified/)
+        end
+
+        it 'displays the help information' do
+          expect(command_result).to match(/--help\s+Prints this help/)
+        end
       end
 
-      it 'should raise an error if three or more required options have not been specified' do
-        dynamic_options_parser.set_argv(['-i', '23.4'])
-        expect { dynamic_options_parser.parse }.to raise_error 'option_1, option_2 and option_3 must be specified, use --help for options'
+      context 'if three or more required options have not been specified' do
+        before do
+          dynamic_options_parser.set_argv(['-i', '23.4'])
+          dynamic_options_parser.parse
+        end
+
+        it 'exits the system' do
+          expect(dynamic_options_parser).to have_exited_system
+        end
+
+        it 'displays a message saying the the required fileds have not been specified' do
+          expect(command_result).to match(/option_1, option_2 and option_3 must be specified/)
+        end
+
+        it 'displays the help text' do
+          expect(command_result).to match(/--help\s+Prints this help/)
+        end
       end
 
-      it 'should not raise an error if help argument passed (--help)' do
+      it 'does not display reuqired options missing message is help option passed to cli (--help)' do
         dynamic_options_parser.set_argv(['--help'])
-
-        expect { dynamic_options_parser.parse }.not_to raise_error
+        dynamic_options_parser.parse
+        expect(command_result).not_to match(/must be specified/)
       end
 
-      it 'should not raise an error if help argument passed (-h)' do
+      it 'does not display reuqired options missing message is help option passed to cli (-h)' do
         dynamic_options_parser.set_argv(['-h'])
-
-        expect { dynamic_options_parser.parse }.not_to raise_error
+        dynamic_options_parser.parse
+        expect(command_result).not_to match(/must be specified/)
       end
     end
   end

@@ -5,7 +5,15 @@ class TestDynamicOptionsParser < DynamicOptionsParser
     @op.default_argv = argv
   end
 
-  def show_help_text_and_exit
-    puts @op
+  def has_exited_system?
+    !!@system_exit_raised
+  end
+
+  def parse
+    begin
+      super
+    rescue SystemExit
+      @system_exit_raised = true
+    end
   end
 end
