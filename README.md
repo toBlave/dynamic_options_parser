@@ -1,4 +1,9 @@
-# This is a wrpper around the standard Ruby OptionsParser. It's designed to make it easier to declare command line options for Command Line ruby scripts.
+
+
+
+# Dynamic Options Parser
+ 
+This is a wrapper around the standard Ruby OptionsParser. It's designed to make it easier to declare command line options for Command Line ruby scripts.
 
 # Usage
 ``` ruby
@@ -10,21 +15,29 @@ options_parser.add_option(:input_file, :read_file, "Input File to read into syst
 cli_options = options_parser.parse
 ```
 
-If this code is included in a ruby script, you can now include command line options when running the script. In this case the accpeted options would be:
+If this code is included in a ruby script, you can now include command line options when running the script. In this case the accepted options would be:
 
---input-file which accepts a read_file (see below) 
---output-file which accepts a string
-
-In addition to this calling the script with --help will print a list of available options. 
-
+ - --input-file which accepts a read_file (see below)
+ - --output-file which accepts a string
+ 
+ These options are set to the ```input_file``` and ```output_file``` methods on the object returned by calling ```parse```
+ 
+In addition to this calling the script with ```--help``` will print a list of available options. 
+```
+Usage: ruby my_script.rb [options]
+    -h, --help                       Prints this help
+    -i, --input-file INPUT_FILE      Input File to read into system
+    -o, --ouput-file OUPUT_FILE      Output File to read into system
+```
 Calling parse return an object with the methods input_file and output_file. These will be set to whatever was passed in for that option from the Command Line
 
-In addition to adding options, you can set a default and marke them as required
+In addition to adding options, you can set a default and mark them as required
 
+```ruby
 options_parser = DynamicOptionsParser.new
 options_parser.add_option(:input_file, :read_file, "Input File to read into system", required: true)
               .add_option(:ouput_file, :string, "Output File to read into system", default: './out_file')
-
+```
 This will set the default output file to ./out_file if not overridden on the command line
 This will exit and show a message taht input_file is required if it is not supplied on the command line
 
@@ -38,18 +51,42 @@ In addition to this there are other option type that are supported
 
 :read_file - This evaluates to a string. It expects the file path of an existing file. It will validate that the file exists and throw an error if it doesn't. This provides an easy way to ensure the ruby script is called with an existing file path.
 
-:dir - Similar to :read_file but also validates that the path provided is a directory
+```:dir``` - Similar to :read_file but also validates that the path provided is a directory
 
-:boolean - Will convert true, false, TRUE, FALSE, t, f to boolean true and boolean false respectively
+```:boolean``` - Will convert ```true```, ```false```, ```TRUE```, ```FALSE```, ```t```,```f```,```T```,```F``` to boolean true and boolean false respectively
 
-:big_decimal - Will convert option to a BigDecimal
+```:big_decimal``` - Will convert option to a BigDecimal
 
-:date_time - Will parse option as a date_time. Accepts anything DateTime.parse accepts
+```:date_time``` - Will parse option as a date_time. Accepts anything DateTime.parse accepts
 
-:time - Will parse option as a Time. Accepts anything Time.parse accepts
+```:time``` - Will parse option as a Time. Accepts anything Time.parse accepts
 
-:date - Will parse option as a Data. Accepts anything Date.parse accepts
+```:date``` - Will parse option as a Data. Accepts anything Date.parse accepts
 
-:symbol - Will convert option to a symbol
+# Shorthand option flags
 
-'array:n' - Allows specification of the type of objects an array should have. 'array:big_decimal' will convert option to an array of BigDecimal objects. As for OptionParser arrays values need to be specified as a comma separated string of values. eg: "1.0,2.45,3.3"
+In addition to ``--input-file myFile`` with the option added above you could also user ```-i myFile```
+
+Currently this gem auto-assigns the shorthand option flag by finding the first letter in the option name that has not already been used.
+
+```ruby
+require 'dynamic_options_parser'
+
+options_parser = DynamicOptionsParser.new
+options_parser.add_option(:option_1, :read_file, "Input File to read into system")
+              .add_option(:option_2, :string, "Output File to read into system")
+              .add_option(:option_3, :dir, "The directory we want to use")
+cli_options = options_parser.parse
+```
+
+Would assign ```-o``` to ```option_1``` ```-p``` to ```option_2``` and ```-t``` to ```option_3```
+
+If in doubt, once you've added this to your code you can run the scripts with ```--help``` to see the resulting options
+
+``` 
+Usage: ruby my_script.rb [options]
+    -h, --help                       Prints this help
+    -o, --option-1 OPTION_1          Input File to read into system
+    -p, --option-2 OPTION_2          Output File to read into system
+    -t, --option-3 OPTION_3          The directory we want to use
+```
