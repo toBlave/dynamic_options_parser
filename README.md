@@ -1,6 +1,3 @@
-
-
-
 # Dynamic Options Parser
  
 This is a wrapper around the standard Ruby OptionsParser. It's designed to make it easier to declare command line options for Command Line ruby scripts.
@@ -49,7 +46,7 @@ As such this library can handle any of the types supported by the standard Optio
 
 In addition to this there are other option type that are supported
 
-:read_file - This evaluates to a string. It expects the file path of an existing file. It will validate that the file exists and throw an error if it doesn't. This provides an easy way to ensure the ruby script is called with an existing file path.
+```:read_file``` - This evaluates to a string. It expects the file path of an existing file. It will validate that the file exists and throw an error if it doesn't. This provides an easy way to ensure the ruby script is called with an existing file path.
 
 ```:dir``` - Similar to :read_file but also validates that the path provided is a directory
 
@@ -90,3 +87,11 @@ Usage: ruby my_script.rb [options]
     -p, --option-2 OPTION_2          Output File to read into system
     -t, --option-3 OPTION_3          The directory we want to use
 ```
+
+# TODO
+
+- Allow override of shorthand option
+- Refactoring needed to make this easier to extend with other new option_types
+- Remove open_struct as base object
+- Document assign_to (let's you set the object you what the options to be set on)
+- Document overriding description line when showing help text
