@@ -2,7 +2,7 @@
  
 This is a wrapper around the standard Ruby OptionsParser. It's designed to make it easier to declare command line options for Command Line ruby scripts.
 
-# Usage
+## Usage
 ``` ruby
 require 'dynamic_options_parser'
 
@@ -14,7 +14,7 @@ cli_options = options_parser.parse
 
 If this code is included in a ruby script, you can now include command line options when running the script. In this case the accepted options would be:
 
- - --input-file which accepts a read_file (see below)
+ - --input-file which accepts a read_file (see Option Types for details on read_file)
  - --output-file which accepts a string
  
  These options are set to the ```input_file``` and ```output_file``` methods on the object returned by calling ```parse```
@@ -28,6 +28,7 @@ Usage: ruby my_script.rb [options]
 ```
 Calling parse return an object with the methods input_file and output_file. These will be set to whatever was passed in for that option from the Command Line
 
+## Required and default options
 In addition to adding options, you can set a default and mark them as required
 
 ```ruby
@@ -38,7 +39,7 @@ options_parser.add_option(:input_file, :read_file, "Input File to read into syst
 This will set the default output file to ./out_file if not overridden on the command line
 This will exit and show a message taht input_file is required if it is not supplied on the command line
 
-# Option Types
+## Option Types
 
 The second argument of the add_option method is an option_type. This string or symbol with be transformed into a class name, :time to Time, :float to Float, :array to Array.
 
@@ -60,7 +61,7 @@ In addition to this there are other option type that are supported
 
 ```:date``` - Will parse option as a Data. Accepts anything Date.parse accepts
 
-# Shorthand option flags
+## Shorthand option flags
 
 In addition to ``--input-file myFile`` with the option added above you could also user ```-i myFile```
 
@@ -88,7 +89,7 @@ Usage: ruby my_script.rb [options]
     -t, --option-3 OPTION_3          The directory we want to use
 ```
 
-# TODO
+## TODO
 
 - Allow override of shorthand option
 - Refactoring needed to make this easier to extend with other new option_types
