@@ -1,3 +1,4 @@
+
 require 'ostruct'
 require 'bigdecimal'
 require 'optparse'
@@ -56,10 +57,6 @@ class DynamicOptionsParser
 
       opts.accept(Date) do |value|
         Date.parse(value)
-      end
-
-      opts.accept(ReadFile) do |value|
-        ReadFile.new(value)
       end
 
       opts.accept(BooleanParser) do |value|
@@ -140,10 +137,6 @@ class DynamicOptionsParser
     @op.banner = "#{cli_description ? "#{cli_description}\n" : ""}Usage: ruby #{@main_path} [options]"
 
     @options ||= OpenStruct.new
-
-    @setup.each do |key, details|
-      add_option(*([key] + details))
-    end
 
     set_defaults
     @op.parse!
