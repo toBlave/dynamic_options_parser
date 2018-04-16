@@ -1,12 +1,12 @@
-# Dynamic Options Parser
+# Easy Options Parser
  
 This is a wrapper around the standard Ruby OptionsParser. It's designed to make it easier to declare command line options for Command Line ruby scripts.
 
 ## Usage
 ``` ruby
-require 'dynamic_options_parser'
+require 'easy_options_parser'
 
-options_parser = DynamicOptionsParser.new
+options_parser = EasyOptionsParser.new
 options_parser.add_option(:input_file, :read_file, "Input File to read into system")
               .add_option(:ouput_file, :string, "Output File to read into system")
 cli_options = options_parser.parse
@@ -32,7 +32,7 @@ Calling parse return an object with the methods input_file and output_file. Thes
 In addition to adding options, you can set a default and mark them as required
 
 ```ruby
-options_parser = DynamicOptionsParser.new
+options_parser = EasyOptionsParser.new
 options_parser.add_option(:input_file, :read_file, "Input File to read into system", required: true)
               .add_option(:ouput_file, :string, "Output File to read into system", default: './out_file')
 ```
@@ -68,9 +68,9 @@ In addition to ``--input-file myFile`` with the option added above you could als
 Currently this gem auto-assigns the shorthand option flag by finding the first letter in the option name that has not already been used.
 
 ```ruby
-require 'dynamic_options_parser'
+require 'easy_options_parser'
 
-options_parser = DynamicOptionsParser.new
+options_parser = EasyOptionsParser.new
 options_parser.add_option(:option_1, :read_file, "Input File to read into system")
               .add_option(:option_2, :string, "Output File to read into system")
               .add_option(:option_3, :dir, "The directory we want to use")
