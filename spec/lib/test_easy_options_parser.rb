@@ -1,6 +1,6 @@
-require 'dynamic_options_parser'
+require 'easy_options_parser'
 
-class TestDynamicOptionsParser < DynamicOptionsParser
+class TestEasyOptionsParser < EasyOptionsParser
   def set_argv(argv)
     @op.default_argv = argv
   end

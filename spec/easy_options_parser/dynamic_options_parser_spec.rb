@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'fileutils'
 require 'tmpdir'
 
-context DynamicOptionsParser do
+context EasyOptionsParser do
   let(:help_args) do
     ["--help"]
   end
@@ -15,12 +15,12 @@ context DynamicOptionsParser do
     output.string
   end
 
-  let(:dynamic_options_parser) do
-    TestDynamicOptionsParser.new
+  let(:easy_options_parser) do
+    TestEasyOptionsParser.new
   end
 
   let(:parsed_options) do
-    dynamic_options_parser.parse
+    easy_options_parser.parse
   end
 
   context "add options" do
@@ -35,38 +35,38 @@ context DynamicOptionsParser do
 
     context "the help text" do
       before do
-        dynamic_options_parser.add_option(:option_1, :string, "My first option").
+        easy_options_parser.add_option(:option_1, :string, "My first option").
           add_option(:option_2, :array, "My second option", {required: true}).
           add_option(:option_3, :string, 'My third option', {default: 'third_default'})
-        dynamic_options_parser.set_argv(['-h'])
+        easy_options_parser.set_argv(['-h'])
       end
 
       it "should accept the options and print the help option details" do
-        dynamic_options_parser.parse
+        easy_options_parser.parse
         expect(command_result).to match(/-h, --help\s+Prints this help/)
       end
 
       it "should have the option 1 details" do
-        dynamic_options_parser.parse
+        easy_options_parser.parse
         expect(command_result).to match(/-o, --option-1 OPTION_1\s+My first option/)
       end
 
       it "should have the option 2 details" do
-        dynamic_options_parser.parse
+        easy_options_parser.parse
         expect(command_result).to match(/-p, --option-2 OPTION_2\s+My second option/)
       end
 
       context "with a cli description set" do
         it "should print the cli description (1)" do
-          dynamic_options_parser.cli_description = "The description for my script"
-          dynamic_options_parser.parse
+          easy_options_parser.cli_description = "The description for my script"
+          easy_options_parser.parse
 
           expect(StringIO.new(command_result).readlines[0].strip).to match(/^The description for my script/)
         end
 
         it "should print the cli description (2)" do
-          dynamic_options_parser.cli_description = "An alternate description for my script"
-          dynamic_options_parser.parse
+          easy_options_parser.cli_description = "An alternate description for my script"
+          easy_options_parser.parse
 
           expect(StringIO.new(command_result).readlines[0].strip).to match(/^An alternate description for my script/)
         end
@@ -76,14 +76,14 @@ context DynamicOptionsParser do
     context "the parsed options" do
       context "where option name start with different characters" do
         before do
-          dynamic_options_parser.add_option(:my_option, :string, "My option")
-          dynamic_options_parser.add_option(:your_option, :string, "Your option")
+          easy_options_parser.add_option(:my_option, :string, "My option")
+          easy_options_parser.add_option(:your_option, :string, "Your option")
         end
 
 
         context "where arguments are specified via single character switches" do
           before do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m',
               'Option 1',
               '-y',
@@ -102,7 +102,7 @@ context DynamicOptionsParser do
 
         context "where arguments are specified via word switches" do
           before do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '--my-option',
               'Option 1',
               '--your-option',
@@ -122,15 +122,15 @@ context DynamicOptionsParser do
 
       context "where option name start with the same characters" do
         before do
-          dynamic_options_parser.add_option(:my_option, :string, "My option")
-          dynamic_options_parser.add_option(:my_second_option, :string, "Second option")
-          dynamic_options_parser.add_option(:my_special_option, :string, "Special option")
+          easy_options_parser.add_option(:my_option, :string, "My option")
+          easy_options_parser.add_option(:my_second_option, :string, "Second option")
+          easy_options_parser.add_option(:my_special_option, :string, "Special option")
         end
 
 
         context "where arguments are specified via single character switches" do
           before do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m',
               'Option 1',
               '-y',
@@ -157,12 +157,12 @@ context DynamicOptionsParser do
       context "where the assign to is set" do
         before do
           @assign_to = OpenStruct.new
-          dynamic_options_parser.add_option(:my_option, :string, "My option")
-          dynamic_options_parser.assign_to(@assign_to)
-          dynamic_options_parser.set_argv([
+          easy_options_parser.add_option(:my_option, :string, "My option")
+          easy_options_parser.assign_to(@assign_to)
+          easy_options_parser.set_argv([
             '-mOption 1'
           ])
-          dynamic_options_parser.parse
+          easy_options_parser.parse
         end
 
         it "should assign the options to he assign to object" do
@@ -173,8 +173,8 @@ context DynamicOptionsParser do
       context 'the option type' do
         context 'BigDecimal' do
           it 'should parse the value to a big decimal where set to a valid value' do
-            dynamic_options_parser.add_option(:my_option, :big_decimal, "My option")
-            dynamic_options_parser.set_argv([
+            easy_options_parser.add_option(:my_option, :big_decimal, "My option")
+            easy_options_parser.set_argv([
               '-m2.45'
             ])
 
@@ -183,12 +183,12 @@ context DynamicOptionsParser do
           end
 
           it 'should raise an invalid argument error when set to an invalid value' do
-            dynamic_options_parser.add_option(:my_option, :big_decimal, "My option")
-            dynamic_options_parser.set_argv([
+            easy_options_parser.add_option(:my_option, :big_decimal, "My option")
+            easy_options_parser.set_argv([
               '-maxdcv'
             ])
 
-            expect{dynamic_options_parser.parse}.to raise_error(ArgumentError)
+            expect{easy_options_parser.parse}.to raise_error(ArgumentError)
           end
         end
 
@@ -202,13 +202,13 @@ context DynamicOptionsParser do
           end
 
           before do
-            dynamic_options_parser.add_option(:my_option, :dir_glob, "My option")
+            easy_options_parser.add_option(:my_option, :dir_glob, "My option")
 
             expect(Dir).to receive(:glob).with(dirglob).and_return(glob_result)
           end
 
           it 'should parse the value to a date where set to a valid value' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               "-m#{dirglob}"
             ])
 
@@ -218,11 +218,11 @@ context DynamicOptionsParser do
 
         context 'Date' do
           before do
-            dynamic_options_parser.add_option(:my_option, :date, "My option")
+            easy_options_parser.add_option(:my_option, :date, "My option")
           end
 
           it 'should parse the value to a date where set to a valid value' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m2015-12-13'
             ])
 
@@ -231,21 +231,21 @@ context DynamicOptionsParser do
           end
 
           it 'should raise an invalid argument error when set to an invalid value' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-maxdcv'
             ])
 
-            expect{dynamic_options_parser.parse}.to raise_error(ArgumentError)
+            expect{easy_options_parser.parse}.to raise_error(ArgumentError)
           end
         end
 
         context 'DateTime' do
           before do
-            dynamic_options_parser.add_option(:my_option, :date_time, "My option")
+            easy_options_parser.add_option(:my_option, :date_time, "My option")
           end
 
           it 'should parse the value to a date_time where set to a valid value' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m2015-12-13T15:00:00'
             ])
 
@@ -254,18 +254,18 @@ context DynamicOptionsParser do
           end
 
           it 'should raise an invalid argument error when set to an invalid value' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-maxdcv'
             ])
 
-            expect{dynamic_options_parser.parse}.to raise_error(ArgumentError)
+            expect{easy_options_parser.parse}.to raise_error(ArgumentError)
           end
         end
 
         context ':read_file' do
           before do
             @tmp_file = File.join(Dir.tmpdir, "tmp_dyn_options_spec_#{DateTime.now.strftime('%Y-%m-%d%H%M%S')}")
-            dynamic_options_parser.add_option(:my_option, :read_file, "My option")
+            easy_options_parser.add_option(:my_option, :read_file, "My option")
           end
 
           after do
@@ -274,7 +274,7 @@ context DynamicOptionsParser do
 
           it 'should parse the value to a read file where set to a valid value' do
             File.write(@tmp_file, ' ')
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m',
               @tmp_file
             ])
@@ -284,22 +284,22 @@ context DynamicOptionsParser do
           end
 
           it 'should raise an invalid argument error when no file exists at that path' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m',
               @tmp_file
             ])
 
-            expect{dynamic_options_parser.parse}.to raise_error("The path: #{@tmp_file} does not exist")
+            expect{easy_options_parser.parse}.to raise_error("The path: #{@tmp_file} does not exist")
           end
         end
 
         context 'Time' do
           before do
-            dynamic_options_parser.add_option(:my_option, :time, "My Option")
+            easy_options_parser.add_option(:my_option, :time, "My Option")
           end
 
           it 'should parse the value to a date_time where set to a valid value' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m2015-12-13T15:00:00'
             ])
 
@@ -308,19 +308,19 @@ context DynamicOptionsParser do
           end
 
           it 'should raise an invalid argument error when set to an invalid value' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-maxdcv'
             ])
 
-            expect{dynamic_options_parser.parse}.to raise_error(ArgumentError)
+            expect{easy_options_parser.parse}.to raise_error(ArgumentError)
           end
         end
 
         context 'dir' do
           before do
             @tmp_file = File.join(Dir.tmpdir, "tmp_dyn_options_spec_#{DateTime.now.strftime('%Y-%m-%d%H%M%S')}")
-            dynamic_options_parser.add_option(:my_option, :dir, "My Option")
-            dynamic_options_parser.set_argv(['-m', @tmp_file])
+            easy_options_parser.add_option(:my_option, :dir, "My Option")
+            easy_options_parser.set_argv(['-m', @tmp_file])
           end
 
           after do
@@ -328,27 +328,27 @@ context DynamicOptionsParser do
           end
 
           it 'should raise an error where the path represented by the value does not exist' do
-            expect{dynamic_options_parser.parse}.to raise_error "The path: #{@tmp_file} does not exist"
+            expect{easy_options_parser.parse}.to raise_error "The path: #{@tmp_file} does not exist"
           end
 
           it 'should raise an error where the path represented by the value exists but is not a directory' do
             File.write(@tmp_file, ' ')
-            expect{dynamic_options_parser.parse}.to raise_error "The path: #{@tmp_file} is not a directory"
+            expect{easy_options_parser.parse}.to raise_error "The path: #{@tmp_file} is not a directory"
           end
 
           it 'should parse the value to a string where the path exists and is a directory' do
             FileUtils.mkdir_p(@tmp_file)
-            expect(dynamic_options_parser.parse.my_option).to eq(@tmp_file)
+            expect(easy_options_parser.parse.my_option).to eq(@tmp_file)
           end
         end
 
         context 'Array' do
           before do
-            dynamic_options_parser.add_option(:my_option, :array, "My Option")
+            easy_options_parser.add_option(:my_option, :array, "My Option")
           end
 
           it 'should parse the value to a read file where set to a valid value' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m',
               "1,2,3,4"
             ])
@@ -360,11 +360,11 @@ context DynamicOptionsParser do
 
         context 'Symbol' do
           before do
-            dynamic_options_parser.add_option(:my_option, :symbol, "My Option")
+            easy_options_parser.add_option(:my_option, :symbol, "My Option")
           end
 
           it 'should parse the value to a read file where set to a valid value' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m',
               "my_value"
             ])
@@ -375,11 +375,11 @@ context DynamicOptionsParser do
 
         context 'Boolean' do
           before do
-            dynamic_options_parser.add_option(:my_option, :boolean, "My Option")
+            easy_options_parser.add_option(:my_option, :boolean, "My Option")
           end
 
           it 'should parse the value to a true boolean is set to true' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m',
               "true"
             ])
@@ -388,7 +388,7 @@ context DynamicOptionsParser do
           end
 
           it 'should parse the value to a false boolean is set to false' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m',
               "false"
             ])
@@ -397,7 +397,7 @@ context DynamicOptionsParser do
           end
 
           it 'should parse the value to a TRUE boolean is set to TRUE' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m',
               "TRUE"
             ])
@@ -406,7 +406,7 @@ context DynamicOptionsParser do
           end
 
           it 'should parse the value to a FALSE boolean is set to FALSE' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m',
               "FALSE"
             ])
@@ -415,7 +415,7 @@ context DynamicOptionsParser do
           end
 
           it 'should parse the value to a t boolean is set to t' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m',
               "t"
             ])
@@ -424,7 +424,7 @@ context DynamicOptionsParser do
           end
 
           it 'should parse the value to a f boolean is set to f' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m',
               "f"
             ])
@@ -433,7 +433,7 @@ context DynamicOptionsParser do
           end
 
           it 'should parse the value to a t boolean is set to T' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m',
               "T"
             ])
@@ -442,7 +442,7 @@ context DynamicOptionsParser do
           end
 
           it 'should parse the value to a f boolean is set to F' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m',
               "F"
             ])
@@ -452,7 +452,7 @@ context DynamicOptionsParser do
 
 
           it 'should parse the value to a true boolean is set to 1' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m',
               "1"
             ])
@@ -461,7 +461,7 @@ context DynamicOptionsParser do
           end
 
           it 'should parse the value to a false boolean is set to 0' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m',
               "0"
             ])
@@ -470,7 +470,7 @@ context DynamicOptionsParser do
           end
 
           it 'should raise an error is set to anything but true, false, 1 or 0' do
-            dynamic_options_parser.set_argv([
+            easy_options_parser.set_argv([
               '-m',
               "whatever"
             ])
@@ -484,7 +484,7 @@ context DynamicOptionsParser do
             before do
               @tmp_file = File.join(Dir.tmpdir, "tmp_dyn_options_spec_#{DateTime.now.strftime('%Y-%m-%d%H%M%S')}")
               @tmp_file_2 = File.join(Dir.tmpdir, "tmp_dyn_options_spec_#{DateTime.now.strftime('%Y-%m-%d%H%M%S')}_2")
-              dynamic_options_parser.add_option(:my_option, 'array:read_file', " Option")
+              easy_options_parser.add_option(:my_option, 'array:read_file', " Option")
             end
 
             after do
@@ -495,7 +495,7 @@ context DynamicOptionsParser do
             before do
               File.write(@tmp_file, ' ')
               File.write(@tmp_file_2, ' ')
-              dynamic_options_parser.set_argv([
+              easy_options_parser.set_argv([
                 '-m',
                 "#{@tmp_file},#{@tmp_file_2}"
               ])
@@ -516,13 +516,13 @@ context DynamicOptionsParser do
             it 'should raise an invalid argument error when file 1 does not existt' do
               FileUtils.rm_f(@tmp_file)
 
-              expect{dynamic_options_parser.parse}.to raise_error("The path: #{@tmp_file} does not exist")
+              expect{easy_options_parser.parse}.to raise_error("The path: #{@tmp_file} does not exist")
             end
 
             it 'should raise an invalid argument error when file 2 does not existt' do
               FileUtils.rm_f(@tmp_file_2)
 
-              expect{dynamic_options_parser.parse}.to raise_error("The path: #{@tmp_file_2} does not exist")
+              expect{easy_options_parser.parse}.to raise_error("The path: #{@tmp_file_2} does not exist")
             end
           end
 
@@ -532,19 +532,19 @@ context DynamicOptionsParser do
             end
 
             before do
-              dynamic_options_parser.set_argv([
+              easy_options_parser.set_argv([
                 "-m#{decimal_args}"
               ])
 
-              dynamic_options_parser.add_option(:my_option, 'array:big_decimal', "My option")
+              easy_options_parser.add_option(:my_option, 'array:big_decimal', "My option")
             end
 
             it 'should parse the values to a big decimal array where set to a valid value' do
-              expect(dynamic_options_parser.parse.my_option.collect(&:class)).to eq([BigDecimal, BigDecimal])
+              expect(easy_options_parser.parse.my_option.collect(&:class)).to eq([BigDecimal, BigDecimal])
             end
 
             it 'should parse the values to the correct values specified on cli where set to a valid value' do
-              expect(dynamic_options_parser.parse.my_option.collect{|v| v.to_s('F')}).to eq(%w[2.45 3.45])
+              expect(easy_options_parser.parse.my_option.collect{|v| v.to_s('F')}).to eq(%w[2.45 3.45])
             end
 
             context 'when first value is invalid' do
@@ -553,7 +553,7 @@ context DynamicOptionsParser do
               end
 
               it 'should raise an error' do
-                expect{dynamic_options_parser.parse}.to raise_error(ArgumentError)
+                expect{easy_options_parser.parse}.to raise_error(ArgumentError)
               end
             end
 
@@ -563,7 +563,7 @@ context DynamicOptionsParser do
               end
 
               it 'should raise an error' do
-                expect{dynamic_options_parser.parse}.to raise_error(ArgumentError)
+                expect{easy_options_parser.parse}.to raise_error(ArgumentError)
               end
             end
           end

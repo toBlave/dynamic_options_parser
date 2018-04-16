@@ -1,11 +1,10 @@
-
 require 'ostruct'
 require 'bigdecimal'
 require 'optparse'
 require 'active_support/all'
 require 'io/console'
 
-class DynamicOptionsParser
+class EasyOptionsParser
   attr_reader :options, :cli_description
 
   def infer_class(option_type)

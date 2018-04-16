@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'fileutils'
 require 'byebug'
 
-describe DynamicOptionsParser do
+describe EasyOptionsParser do
     let(:output) do
     StringIO.new
   end
@@ -11,12 +11,12 @@ describe DynamicOptionsParser do
     output.string
   end
 
-  let(:dynamic_options_parser) do
-    TestDynamicOptionsParser.new(initialisation_args)
+  let(:easy_options_parser) do
+    TestEasyOptionsParser.new(initialisation_args)
   end
 
   let(:parsed_options) do
-    dynamic_options_parser.parse
+    easy_options_parser.parse
   end
 
   let(:initialisation_args) do

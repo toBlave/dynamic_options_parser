@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    dynamic_options_parser (1.0.0)
+    easy_options_parser (1.0.0)
       activesupport
 
 GEM
@@ -40,7 +40,7 @@ PLATFORMS
 
 DEPENDENCIES
   byebug
-  dynamic_options_parser!
+  easy_options_parser!
   rspec
 
 BUNDLED WITH
