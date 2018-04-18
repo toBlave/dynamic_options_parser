@@ -9,6 +9,7 @@ Gem::Specification.new do |s|
   s.files       = ["lib/easy_options_parser.rb"]
   s.add_dependency "activesupport"
   s.add_development_dependency "rspec"
+  s.add_development_dependency "yard"
   s.add_development_dependency "byebug"
   s.license       = 'MIT'
 end

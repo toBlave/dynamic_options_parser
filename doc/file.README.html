@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  File: README
+  
+    &mdash; Documentation by YARD 0.9.12
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" charset="utf-8" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" charset="utf-8" />
+
+<script type="text/javascript" charset="utf-8">
+  pathId = "README";
+  relpath = '';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="file_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="_index.html">Index</a> &raquo; 
+    <span class="title">File: README</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><div id='filecontents'>
+<h1 id="label-Easy+Options+Parser">Easy Options Parser</h1>
+
+<p>This is a wrapper around the standard Ruby OptionsParser. It&#39;s designed
+to make it easier to declare command line options for Command Line ruby
+scripts.</p>
+
+<h2 id="label-Usage">Usage</h2>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_require'>require</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>easy_options_parser</span><span class='tstring_end'>&#39;</span></span>
+
+<span class='id identifier rubyid_options_parser'>options_parser</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="EasyOptionsParser.html" title="EasyOptionsParser (class)">EasyOptionsParser</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="EasyOptionsParser.html#initialize-instance_method" title="EasyOptionsParser#initialize (method)">new</a></span></span>
+<span class='id identifier rubyid_options_parser'>options_parser</span><span class='period'>.</span><span class='id identifier rubyid_add_option'>add_option</span><span class='lparen'>(</span><span class='symbol'>:input_file</span><span class='comma'>,</span> <span class='symbol'>:read_file</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Input File to read into system</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+              <span class='period'>.</span><span class='id identifier rubyid_add_option'>add_option</span><span class='lparen'>(</span><span class='symbol'>:ouput_file</span><span class='comma'>,</span> <span class='symbol'>:string</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Output File to read into system</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+<span class='id identifier rubyid_cli_options'>cli_options</span> <span class='op'>=</span> <span class='id identifier rubyid_options_parser'>options_parser</span><span class='period'>.</span><span class='id identifier rubyid_parse'>parse</span>
+</code></pre>
+
+<p>If this code is included in a ruby script, you can now include command line
+options when running the script. In this case the accepted options would
+be:</p>
+<ul><li>
+<p>–input-file which accepts a read_file (see Option Types for details on
+read_file)</p>
+</li><li>
+<p>–output-file which accepts a string</p>
+</li></ul>
+
+<p>These options are set to the <code>input_file</code> and
+<code>output_file</code> methods on the object returned by calling
+<code>parse</code></p>
+
+<p>In addition to this calling the script with <code>--help</code> will print
+a list of available options. <code> Usage: ruby my_script.rb [options]    
+-h, --help                       Prints this help     -i, --input-file
+INPUT_FILE      Input File to read into system     -o, --ouput-file
+OUPUT_FILE      Output File to read into system </code> Calling parse
+return an object with the methods input_file and output_file. These will be
+set to whatever was passed in for that option from the Command Line</p>
+
+<h2 id="label-Required+and+default+options">Required and default options</h2>
+
+<p>In addition to adding options, you can set a default and mark them as
+required</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_options_parser'>options_parser</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="EasyOptionsParser.html" title="EasyOptionsParser (class)">EasyOptionsParser</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="EasyOptionsParser.html#initialize-instance_method" title="EasyOptionsParser#initialize (method)">new</a></span></span>
+<span class='id identifier rubyid_options_parser'>options_parser</span><span class='period'>.</span><span class='id identifier rubyid_add_option'>add_option</span><span class='lparen'>(</span><span class='symbol'>:input_file</span><span class='comma'>,</span> <span class='symbol'>:read_file</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Input File to read into system</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>required:</span> <span class='kw'>true</span><span class='rparen'>)</span>
+              <span class='period'>.</span><span class='id identifier rubyid_add_option'>add_option</span><span class='lparen'>(</span><span class='symbol'>:ouput_file</span><span class='comma'>,</span> <span class='symbol'>:string</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Output File to read into system</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>default:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>./out_file</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+</code></pre>
+
+<p>This will set the default output file to ./out_file if not overridden on
+the command line This will exit and show a message taht input_file is
+required if it is not supplied on the command line</p>
+
+<h2 id="label-Option+Types">Option Types</h2>
+
+<p>The second argument of the add_option method is an option_type. This string
+or symbol with be transformed into a class name, :time to Time, :float to
+Float, :array to Array.</p>
+
+<p>As such this library can handle any of the types supported by the standard
+OptionParser class in ruby. See <a
+href="https://docs.ruby-lang.org/en/2.5.0/OptionParser.html">docs.ruby-lang.org/en/2.5.0/OptionParser.html</a>
+for more information.</p>
+
+<p>In addition to this there are other option type that are supported</p>
+
+<p><code>:read_file</code> - This evaluates to a string. It expects the file
+path of an existing file. It will validate that the file exists and throw
+an error if it doesn&#39;t. This provides an easy way to ensure the ruby
+script is called with an existing file path.</p>
+
+<p><code>:dir</code> - Similar to :read_file but also validates that the path
+provided is a directory</p>
+
+<p><code>:boolean</code> - Will convert <code>true</code>, <code>false</code>,
+<code>TRUE</code>, <code>FALSE</code>,
+<code>t</code>,<code>f</code>,<code>T</code>,<code>F</code> to boolean true
+and boolean false respectively</p>
+
+<p><code>:big_decimal</code> - Will convert option to a BigDecimal</p>
+
+<p><code>:date_time</code> - Will parse option as a date_time. Accepts
+anything DateTime.parse accepts</p>
+
+<p><code>:time</code> - Will parse option as a Time. Accepts anything
+Time.parse accepts</p>
+
+<p><code>:date</code> - Will parse option as a Data. Accepts anything
+Date.parse accepts</p>
+
+<h2 id="label-Shorthand+option+flags">Shorthand option flags</h2>
+
+<p>In addition to <code>--input-file myFile</code> with the option added above
+you could also user <code>-i myFile</code></p>
+
+<p>Currently this gem auto-assigns the shorthand option flag by finding the
+first letter in the option name that has not already been used.</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_require'>require</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>easy_options_parser</span><span class='tstring_end'>&#39;</span></span>
+
+<span class='id identifier rubyid_options_parser'>options_parser</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="EasyOptionsParser.html" title="EasyOptionsParser (class)">EasyOptionsParser</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="EasyOptionsParser.html#initialize-instance_method" title="EasyOptionsParser#initialize (method)">new</a></span></span>
+<span class='id identifier rubyid_options_parser'>options_parser</span><span class='period'>.</span><span class='id identifier rubyid_add_option'>add_option</span><span class='lparen'>(</span><span class='symbol'>:option_1</span><span class='comma'>,</span> <span class='symbol'>:read_file</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Input File to read into system</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+              <span class='period'>.</span><span class='id identifier rubyid_add_option'>add_option</span><span class='lparen'>(</span><span class='symbol'>:option_2</span><span class='comma'>,</span> <span class='symbol'>:string</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Output File to read into system</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+              <span class='period'>.</span><span class='id identifier rubyid_add_option'>add_option</span><span class='lparen'>(</span><span class='symbol'>:option_3</span><span class='comma'>,</span> <span class='symbol'>:dir</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>The directory we want to use</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+<span class='id identifier rubyid_cli_options'>cli_options</span> <span class='op'>=</span> <span class='id identifier rubyid_options_parser'>options_parser</span><span class='period'>.</span><span class='id identifier rubyid_parse'>parse</span>
+</code></pre>
+
+<p>Would assign <code>-o</code> to <code>option_1</code> <code>-p</code> to
+<code>option_2</code> and <code>-t</code> to <code>option_3</code></p>
+
+<p>If in doubt, once you&#39;ve added this to your code you can run the
+scripts with <code>--help</code> to see the resulting options</p>
+
+<pre class="code ruby"><code class="ruby">Usage: ruby my_script.rb [options]
+    -h, --help                       Prints this help
+    -o, --option-1 OPTION_1          Input File to read into system
+    -p, --option-2 OPTION_2          Output File to read into system
+    -t, --option-3 OPTION_3          The directory we want to use</code></pre>
+
+<h2 id="label-TODO">TODO</h2>
+<ul><li>
+<p>Allow override of shorthand option</p>
+</li><li>
+<p>Refactoring needed to make this easier to extend with other new
+option_types</p>
+</li><li>
+<p>Remove open_struct as base object</p>
+</li><li>
+<p>Document assign_to (let&#39;s you set the object you what the options to be
+set on)</p>
+</li><li>
+<p>Document overriding description line when showing help text</p>
+</li></ul>
+</div></div>
+
+      <div id="footer">
+  Generated on Wed Apr 18 14:21:26 2018 by
+  <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.12 (ruby-2.4.1).
+</div>
+
+    </div>
+  </body>
+</html>
