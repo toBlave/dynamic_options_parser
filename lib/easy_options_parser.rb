@@ -16,6 +16,7 @@ class EasyOptionsParser
     @main_path = caller_locations.detect{|l| l.base_label.match(/<main>/)}.try(:path) || 'main_file.rb'
     @defaults = {}
     @required_options = {}
+    @methods = []
     cli_description = setup.delete(:_cli_description)
     assign_to(setup.delete(:_assign_to))
 
@@ -79,6 +80,7 @@ class EasyOptionsParser
   def add_option(option_name, option_type, description = nil, additional_options = {})
     method_name = option_name.to_s.gsub(/\W/, '_')
 
+    @methods << method_name.to_sym
     @defaults[method_name] = additional_options[:default]
     @required_options[method_name] = additional_options[:required]
 
@@ -125,7 +127,7 @@ class EasyOptionsParser
     @help_arg_passed = false
     @op.banner = "#{cli_description ? "#{cli_description}\n" : ""}Usage: ruby #{@main_path} [options]"
 
-    @options ||= OpenStruct.new
+    @options ||= Struct.new(*@methods).new
 
     set_defaults
     @op.parse!
