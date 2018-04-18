@@ -84,39 +84,17 @@ class EasyOptionsParser
     @defaults[method_name] = additional_options[:default]
     @required_options[method_name] = additional_options[:required]
 
-    char = option_name.to_s.gsub(/[^A-Za-z]/, '').chars.detect do |c|
-      !@first_letters[c.to_s]
-    end
-
-    unless(char)
-      char = ('a'..'z').to_a.detect do |c|
-        !@first_letters[c]
-      end
-    end
-
-    @first_letters[char.to_s] = char
-
-    variable_name = option_name.to_s.gsub(/\W/, "_").upcase
-
-    option_type_class = infer_class(option_type)
-
     if(additional_options[:default])
       description = "#{description.to_s} (default: #{additional_options[:default]})"
     elsif(additional_options[:required])
       description = "#{description.to_s} (required)"
     end
 
-    @op.on("-#{char}#{variable_name}", "--#{option_name.to_s.gsub(/_/, '-')} #{variable_name}", option_type_class, description) do |value|
-      if(option_type.to_s.match(/^array:/))
-        value = process_array_with_sub_type(option_type, value)
-      else
-        value = process_individual_item_type(option_type, value)
-      end
-
-      value = yield(value) if block_given?
-
-      @options.send("#{method_name}=", value)
-    end
+    define_option_on_native_parser(
+      option_name: option_name,
+      option_type: option_type,
+      description: description,
+      method_name: method_name)
 
     self
   end
@@ -164,6 +142,48 @@ class EasyOptionsParser
         raise "Invalid boolean value #{@value.inspect}"
       end
     end
+  end
+
+  def define_option_on_native_parser(options)
+    option_name = options[:option_name]
+    option_type = options[:option_type]
+    description = options[:description]
+    method_name = options[:method_name]
+
+    assigned_shorthand = determine_shorthand_char(option_name)
+    variable_name = option_name.to_s.gsub(/\W/, "_").upcase
+    option_type_class = infer_class(option_type)
+
+    @op.on("-#{assigned_shorthand}#{variable_name}",
+           "--#{option_name.to_s.gsub(/_/, '-')} #{variable_name}",
+           option_type_class,
+           description) do |value|
+      if(option_type.to_s.match(/^array:/))
+        value = process_array_with_sub_type(option_type, value)
+      else
+        value = process_individual_item_type(option_type, value)
+      end
+
+      value = yield(value) if block_given?
+
+      @options.send("#{method_name}=", value)
+    end
+  end
+
+  def determine_shorthand_char(option_name)
+    char = option_name.to_s.gsub(/[^A-Za-z]/, '').chars.detect do |c|
+      !@first_letters[c.to_s]
+    end
+
+    unless(char)
+      char = ('a'..'z').to_a.detect do |c|
+        !@first_letters[c]
+      end
+    end
+
+    @first_letters[char.to_s] = char
+
+    char
   end
 
   def process_individual_item_type(option_type, value)
@@ -220,8 +240,8 @@ class EasyOptionsParser
     end
 
     unless missing_options.empty?
-     puts "#{missing_options.to_sentence.gsub(/, and/, ' and')} must be specified"
-     show_help_text_and_exit 1
+      puts "#{missing_options.to_sentence.gsub(/, and/, ' and')} must be specified"
+      show_help_text_and_exit 1
     end
   end
 
