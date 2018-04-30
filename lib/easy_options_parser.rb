@@ -11,9 +11,9 @@ class EasyOptionsParser
   #
   # @param [Hash] setup may contain one or all of the following
   #   * :_cli_description - Is set it this option will override the default description in the help text (--help)
-  #   * :_assign_to - Not compltely tested. If set, the options passed to the command line will be set on the passed on object
+  #   * :_assign_to - If set, the options passed to the command line will be set on the passed on object
   def initialize(setup = {})
-    @main_path = caller_locations.detect{|l| l.base_label.match(/<main>/)}.try(:path) || 'main_file.rb'
+    @main_path = caller_locations.detect { |l| l.base_label.match(/<main>/) }.try(:path) || 'main_file.rb'
     @defaults = {}
     @required_options = {}
     @methods = []
@@ -27,7 +27,7 @@ class EasyOptionsParser
       @opt_parse_setup = opts
 
       opts.accept(BigDecimal) do |value|
-        BigDecimal.new(value)
+        BigDecimal(value)
       end
 
       opts.accept(DateTime) do |value|
@@ -46,13 +46,11 @@ class EasyOptionsParser
         BooleanParser.new(value).parsed_value
       end
 
-      opts.accept(Symbol) do |value|
-        value.to_sym
-      end
+      opts.accept(Symbol, &:to_sym)
 
       @first_letters = {}
 
-      opts.on("-h", "--help", "Prints this help") do
+      opts.on('-h', '--help', 'Prints this help') do
         @help_arg_passed = true
         show_help_text_and_exit
       end
@@ -62,11 +60,9 @@ class EasyOptionsParser
   # Overrides the description given in the help text. Calling this is the same as passing :_cli_description
   # to the constructor
   # @param [String] cli_description - The description to show in the help text
-  def cli_description=(cli_description)
-    @cli_description = cli_description
-  end
+  attr_writer :cli_description
 
-  # Not fully tested. By default this the parse method will create an object whose methods will return the options passed in on the command line
+  # Overrides the default parsing behaviour by assigning the options value to the object passed into this method
   # @param [Object] assign_to - the object to assign the commnd line option to. It is assumed that the appropriate writer methods
   #                             available on the object
   def assign_to(assign_to)
@@ -79,22 +75,26 @@ class EasyOptionsParser
   # @param [String] description - The description of this option. This will appear in the help text when a user passes --help
   def add_option(option_name, option_type, description = nil, additional_options = {})
     method_name = option_name.to_s.gsub(/\W/, '_')
+    assigned_longhand = determine_longhand_flag(option_name)
 
     @methods << method_name.to_sym
     @defaults[method_name] = additional_options[:default]
-    @required_options[method_name] = additional_options[:required]
+    @required_options[method_name] = { assigned_longhand: "--#{assigned_longhand}",
+                                       required: additional_options[:required] }
 
-    if(additional_options[:default])
-      description = "#{description.to_s} (default: #{additional_options[:default]})"
-    elsif(additional_options[:required])
-      description = "#{description.to_s} (required)"
+    if additional_options[:default]
+      description = "#{description} (default: #{additional_options[:default]})"
+    elsif additional_options[:required]
+      description = "#{description} (required)"
     end
 
     define_option_on_native_parser(
       option_name: option_name,
       option_type: option_type,
       description: description,
-      method_name: method_name)
+      method_name: method_name,
+      assigned_longhand: assigned_longhand
+    )
 
     self
   end
@@ -103,7 +103,7 @@ class EasyOptionsParser
   # @return [Object] Either the object passed into assign_to or a new object with the options defined avaiable as methods
   def parse
     @help_arg_passed = false
-    @op.banner = "#{cli_description ? "#{cli_description}\n" : ""}Usage: ruby #{@main_path} [options]"
+    @op.banner = "#{cli_description ? "#{cli_description}\n" : ''}Usage: ruby #{@main_path} [options]"
 
     @options ||= Struct.new(*@methods).new
 
@@ -123,7 +123,7 @@ class EasyOptionsParser
     def initialize(path)
       @path = path
 
-      raise ArgumentError.new("#{path} does not exist") unless File.exists?(path)
+      raise ArgumentError, "#{path} does not exist" unless File.exist?(path)
     end
   end
 
@@ -144,29 +144,23 @@ class EasyOptionsParser
     end
   end
 
-  def define_option_on_native_parser(options)
-    option_name = options[:option_name]
-    option_type = options[:option_type]
-    description = options[:description]
-    method_name = options[:method_name]
+  def determine_longhand_flag(option_name)
+    option_name.to_s.tr('_', '-')
+  end
 
-    assigned_shorthand = determine_shorthand_char(option_name)
-    variable_name = option_name.to_s.gsub(/\W/, "_").upcase
-    option_type_class = infer_class(option_type)
+  def define_option_on_native_parser(options)
+    option_type = options[:option_type]
+    assigned_shorthand = determine_shorthand_char(options[:option_name])
+    variable_name = option_name.to_s.gsub(/\W/, '_').upcase
 
     @op.on("-#{assigned_shorthand}#{variable_name}",
-           "--#{option_name.to_s.gsub(/_/, '-')} #{variable_name}",
-           option_type_class,
-           description) do |value|
-      if(option_type.to_s.match(/^array:/))
-        value = process_array_with_sub_type(option_type, value)
-      else
-        value = process_individual_item_type(option_type, value)
-      end
-
+           "--#{options[:assigned_longhand]} #{variable_name}",
+           infer_class(option_type),
+           options[:description]) do |value|
+      value = process_option_value(option_type, value)
       value = yield(value) if block_given?
 
-      @options.send("#{method_name}=", value)
+      @options.send("#{optiosns[:method_name]}=", value)
     end
   end
 
@@ -175,10 +169,8 @@ class EasyOptionsParser
       !@first_letters[c.to_s]
     end
 
-    unless(char)
-      char = ('a'..'z').to_a.detect do |c|
-        !@first_letters[c]
-      end
+    char ||= ('a'..'z').to_a.detect do |c|
+      !@first_letters[c]
     end
 
     @first_letters[char.to_s] = char
@@ -187,21 +179,27 @@ class EasyOptionsParser
   end
 
   def process_individual_item_type(option_type, value)
-    if(option_type.to_s == 'dir_glob')
-      return Dir.glob(value[0])
-    elsif(option_type.to_s == 'dir')
-      raise "The path: #{value} does not exist" unless File.exist?(value)
-      raise "The path: #{value} is not a directory" unless File.directory?(value)
-    elsif(option_type.to_s == 'read_file')
-      raise "The path: #{value} does not exist" unless File.exist?(value)
-    end
+    return Dir.glob(value[0]) if option_type.to_s == 'dir_glob'
 
-    return value
+    validate_file_path_exists(value) if option_type == 'read_file'
+    validate_directory_path(value) if option_type == 'dir'
+
+    value
+  end
+
+  def validate_file_path_exists(value)
+    raise "The path: #{value} does not exist" unless File.exist?(value)
+  end
+
+  def validate_directory_path(value)
+    validate_file_path_exists(value)
+
+    raise "The path: #{value} is not a directory" unless File.directory?(value)
   end
 
   def infer_class(option_type)
     return option_type if option_type.is_a?(Class)
-    return Array if option_type.to_s.match(/^array:?/)
+    return Array if option_type.to_s =~ /^array:?/
     return Array if option_type.to_s == 'dir_glob'
     return String if %w[read_file dir].include?(option_type.to_s)
 
@@ -218,7 +216,7 @@ class EasyOptionsParser
     klass = infer_class(sub_type)
 
     value.collect do |v|
-      if(klass == String)
+      if klass == String
         process_individual_item_type(sub_type, v)
       else
         klass.new(v)
@@ -234,20 +232,37 @@ class EasyOptionsParser
   def validate_options
     return if @help_arg_passed
 
-    missing_options = @required_options.keys.select do |method_name|
-      required = @required_options[method_name]
-      required && !@options.send(method_name)
+    missing_options = find_missing_options
+
+    return if missing_options.empty?
+
+    longhand_flags = missing_options.collect do |method_name|
+      @required_options[method_name][:assigned_longhand]
     end
 
-    unless missing_options.empty?
-      puts "#{missing_options.to_sentence.gsub(/, and/, ' and')} must be specified"
-      show_help_text_and_exit 1
-    end
+    puts "#{longhand_flags.to_sentence.gsub(/, and/, ' and')} must be"\
+      ' specified'
+    show_help_text_and_exit 1
   end
 
   def set_defaults
     @defaults.each do |method_name, default|
       @options.send("#{method_name}=", default)
+    end
+  end
+
+  def find_missing_options
+    @required_options.keys.select do |method_name|
+      required = @required_options[method_name][:required]
+      required && !@options.send(method_name)
+    end
+  end
+
+  def process_option_value(option_type, value)
+    if option_type.to_s =~ /^array:/
+      process_array_with_sub_type(option_type, value)
+    else
+      process_individual_item_type(option_type, value)
     end
   end
 end

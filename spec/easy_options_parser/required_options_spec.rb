@@ -16,7 +16,6 @@ context EasyOptionsParser do
     $stdout = @original_stdio
   end
 
-
   let(:command_result) do
     output.string
   end
@@ -25,16 +24,17 @@ context EasyOptionsParser do
     TestEasyOptionsParser.new
   end
 
-  context "add options" do
+  context 'add options' do
     context 'where one option is required' do
       before do
-        easy_options_parser.add_option(:option_1, :string, "My first option", required: true)
-        easy_options_parser.add_option(:option_2, :array, "My second option")
+        easy_options_parser.add_option(:option_1, :string, 'My first option',
+                                       required: true)
+        easy_options_parser.add_option(:option_2, :array, 'My second option')
       end
 
       context 'when the required option has not been specified' do
         before do
-          easy_options_parser.set_argv(['-p', "1,2"])
+          easy_options_parser.set_argv(['-p', '1,2'])
           easy_options_parser.parse
         end
 
@@ -44,7 +44,7 @@ context EasyOptionsParser do
 
         it 'should output that the required field is missing' do
           easy_options_parser.parse
-          expect(command_result).to match(/option_1 must be specified/)
+          expect(command_result).to match(/--option-1 must be specified/)
         end
 
         it 'should output the help text' do
@@ -54,7 +54,7 @@ context EasyOptionsParser do
       end
 
       it 'should not exit if the required option has been specified' do
-        easy_options_parser.set_argv(['-o', "required_option"])
+        easy_options_parser.set_argv(['-o', 'required_option'])
         options = easy_options_parser.parse
         expect(easy_options_parser).not_to have_exited_system
         expect(options.option_1).to eq('required_option')
@@ -63,14 +63,22 @@ context EasyOptionsParser do
 
     context 'where more than one option is required' do
       before do
-        easy_options_parser.add_option(:option_1, :string, "My first option", required: true)
-        easy_options_parser.add_option(:option_2, :array, "My second option", required: true)
-        easy_options_parser.add_option(:option_3, :big_decimal, "My third option", required: true)
-        easy_options_parser.add_option(:option_4, :big_decimal, "My fourth option")
+        easy_options_parser.add_option(:option_1, :string, 'My first option',
+                                       required: true)
+        easy_options_parser.add_option(:option_2, :array, 'My second option',
+                                       required: true)
+        easy_options_parser.add_option(:option_3, :big_decimal,
+                                       'My third option', required: true)
+        easy_options_parser.add_option(:option_4, :big_decimal,
+                                       'My fourth option')
       end
 
       it 'should exit if one required option has not been specified' do
-        easy_options_parser.set_argv(['-o', "required_string", '-t', '1.5', '-i', '23.4'])
+        easy_options_parser.set_argv(
+          [
+            '-o', 'required_string', '-t', '1.5', '-i', '23.4'
+          ]
+        )
         expect(easy_options_parser).not_to have_exited_system
       end
 
@@ -85,7 +93,9 @@ context EasyOptionsParser do
         end
 
         it 'displays a message saying that the required options are missing' do
-          expect(command_result).to match(/option_1 and option_2 must be specified/)
+          expect(command_result).to match(
+            /--option-1 and --option-2 must be specified/
+          )
         end
 
         it 'displays the help information' do
@@ -103,8 +113,10 @@ context EasyOptionsParser do
           expect(easy_options_parser).to have_exited_system
         end
 
-        it 'displays a message saying the the required fileds have not been specified' do
-          expect(command_result).to match(/option_1, option_2 and option_3 must be specified/)
+        it 'notifies user that required fields have not been specified' do
+          expect(command_result).to match(
+            /--option-1, --option-2 and --option-3 must be specified/
+          )
         end
 
         it 'displays the help text' do
@@ -112,13 +124,13 @@ context EasyOptionsParser do
         end
       end
 
-      it 'does not display reuqired options missing message is help option passed to cli (--help)' do
+      it 'does not check missing options if --help option passed to cli' do
         easy_options_parser.set_argv(['--help'])
         easy_options_parser.parse
         expect(command_result).not_to match(/must be specified/)
       end
 
-      it 'does not display reuqired options missing message is help option passed to cli (-h)' do
+      it 'does not check missing options if -h help option passed to cli' do
         easy_options_parser.set_argv(['-h'])
         easy_options_parser.parse
         expect(command_result).not_to match(/must be specified/)

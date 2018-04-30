@@ -10,10 +10,8 @@ class TestEasyOptionsParser < EasyOptionsParser
   end
 
   def parse
-    begin
-      super
-    rescue SystemExit
-      @system_exit_raised = true
-    end
+    super
+  rescue SystemExit
+    @system_exit_raised = true
   end
 end
