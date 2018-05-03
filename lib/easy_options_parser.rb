@@ -150,8 +150,9 @@ class EasyOptionsParser
 
   def define_option_on_native_parser(options)
     option_type = options[:option_type]
-    assigned_shorthand = determine_shorthand_char(options[:option_name])
-    variable_name = option_name.to_s.gsub(/\W/, '_').upcase
+    option_name = options[:option_name]
+    assigned_shorthand = determine_shorthand_char(option_name)
+    variable_name = options[option_name.to_s.gsub(/\W/, '_').upcase
 
     @op.on("-#{assigned_shorthand}#{variable_name}",
            "--#{options[:assigned_longhand]} #{variable_name}",
