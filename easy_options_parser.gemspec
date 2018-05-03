@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'easy_options_parser'
-  s.version     = '1.0.0'
+  s.version     = '1.0.1'
   s.date        = '2018-04-15'
   s.summary     = 'A wrapper around Ruby\'s OptionParser that makes it easier '\
                   'to define the command line options of your ruby scripts'
