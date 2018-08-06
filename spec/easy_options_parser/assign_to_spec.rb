@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require 'fileutils'
 require 'byebug'
 
 context EasyOptionsParser do
   let(:output) do
-    StringIO.new
+    CaptureStdOut.new
   end
 
   let(:command_result) do
@@ -32,8 +34,9 @@ context EasyOptionsParser do
     before do
       easy_options_parser
         .add_option(:option_1, :string, 'My first option')
-        .add_option(:option_2, :array, 'My second option', default: [:option_2_default])
-        .add_option(:option_3, :date_time, 'My third option')
+        .add_option(:option_2, :array, 'My second option',
+                    default: [:option_2_default])
+        .add_option(:option_3, :time, 'My third option')
     end
 
     describe 'when assign_to set via the assign_to method' do
@@ -46,25 +49,26 @@ context EasyOptionsParser do
       end
 
       it 'should set any set options onto the assign_to object' do
-        easy_options_parser.set_argv(['--option-1', 'Option Value 1',
-                                      '--option-2', '1,2,3,4',
-                                      '--option-3', '2011-12-12T15:00:00'])
+        easy_options_parser.argv = ['--option-1', 'Option Value 1',
+                                    '--option-2', '1,2,3,4',
+                                    '--option-3', '2011-12-12T15:00:00']
 
         easy_options_parser.parse
         expect(assign_to.option_1).to eq('Option Value 1')
         expect(assign_to.option_2).to eq(%w[1 2 3 4])
-        expect(assign_to.option_3).to eq(DateTime.parse('2011-12-12T15:00:00'))
+        expect(assign_to.option_3).to eq(Time.parse('2011-12-12T15:00:00'))
       end
 
-      it 'should set defaults where a default value is available and the option is not set' do
-        easy_options_parser.set_argv([])
+      it 'sets defaults where available and the option is not set' do
+        easy_options_parser.argv = []
 
         easy_options_parser.parse
-        expect(assign_to.option_2).to eq([:option_2_default])
+        expect(assign_to.option_2)
+          .to eq([:option_2_default])
       end
 
-      it 'should leave all blank values blank if not defaulted and not set' do
-        easy_options_parser.set_argv([])
+      it 'leaves all blank values blank if not defaulted and not set' do
+        easy_options_parser.argv = []
 
         easy_options_parser.parse
         expect(assign_to.option_1).to be_nil
@@ -72,8 +76,10 @@ context EasyOptionsParser do
       end
 
       it 'should still exit with a message if a required option is not set' do
-        easy_options_parser.add_option(:option_4, :string, 'My Fourth Option', required: true)
-        easy_options_parser.set_argv([])
+        easy_options_parser.add_option(
+          :option_4, :string, 'My Fourth Option', required: true
+        )
+        easy_options_parser.argv = []
 
         easy_options_parser.parse
         expect(easy_options_parser).to have_exited_system
@@ -87,25 +93,25 @@ context EasyOptionsParser do
       end
 
       it 'should set any set options onto the assign_to object' do
-        easy_options_parser.set_argv(['--option-1', 'Option Value 1',
-                                      '--option-2', '1,2,3,4',
-                                      '--option-3', '2011-12-12T15:00:00'])
+        easy_options_parser.argv = ['--option-1', 'Option Value 1',
+                                    '--option-2', '1,2,3,4',
+                                    '--option-3', '2011-12-12T15:00:00']
 
         easy_options_parser.parse
         expect(assign_to.option_1).to eq('Option Value 1')
         expect(assign_to.option_2).to eq(%w[1 2 3 4])
-        expect(assign_to.option_3).to eq(DateTime.parse('2011-12-12T15:00:00'))
+        expect(assign_to.option_3).to eq(Time.parse('2011-12-12T15:00:00'))
       end
 
-      it 'should set defaults where a default value is available and the option is not set' do
-        easy_options_parser.set_argv([])
+      it 'sets defaults where available and the option is not set' do
+        easy_options_parser.argv = []
 
         easy_options_parser.parse
         expect(assign_to.option_2).to eq([:option_2_default])
       end
 
-      it 'should leave all blank values blank if not defaulted and not set' do
-        easy_options_parser.set_argv([])
+      it 'leaves all blank values blank if not defaulted and not set' do
+        easy_options_parser.argv = []
 
         easy_options_parser.parse
         expect(assign_to.option_1).to be_nil
@@ -113,8 +119,11 @@ context EasyOptionsParser do
       end
 
       it 'should still exit with a message if a required option is not set' do
-        easy_options_parser.add_option(:option_4, :string, 'My Fourth Option', required: true)
-        easy_options_parser.set_argv([])
+        easy_options_parser.add_option(
+          :option_4, :string, 'My Fourth Option', required: true
+        )
+
+        easy_options_parser.argv = []
 
         easy_options_parser.parse
         expect(easy_options_parser).to have_exited_system

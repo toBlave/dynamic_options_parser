@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require 'fileutils'
 require 'byebug'
 
 context EasyOptionsParser do
   let(:output) do
-    StringIO.new
+    CaptureStdOut.new
   end
 
   before do
@@ -34,7 +36,7 @@ context EasyOptionsParser do
 
       context 'when the required option has not been specified' do
         before do
-          easy_options_parser.set_argv(['-p', '1,2'])
+          easy_options_parser.argv = ['-p', '1,2']
           easy_options_parser.parse
         end
 
@@ -54,7 +56,7 @@ context EasyOptionsParser do
       end
 
       it 'should not exit if the required option has been specified' do
-        easy_options_parser.set_argv(['-o', 'required_option'])
+        easy_options_parser.argv = ['-o', 'required_option']
         options = easy_options_parser.parse
         expect(easy_options_parser).not_to have_exited_system
         expect(options.option_1).to eq('required_option')
@@ -74,17 +76,17 @@ context EasyOptionsParser do
       end
 
       it 'should exit if one required option has not been specified' do
-        easy_options_parser.set_argv(
+        easy_options_parser.argv =
           [
             '-o', 'required_string', '-t', '1.5', '-i', '23.4'
           ]
-        )
+
         expect(easy_options_parser).not_to have_exited_system
       end
 
       context 'if two required options have not been specified' do
         before do
-          easy_options_parser.set_argv(['-t', '1.5', '-i', '23.4'])
+          easy_options_parser.argv = ['-t', '1.5', '-i', '23.4']
           easy_options_parser.parse
         end
 
@@ -105,7 +107,7 @@ context EasyOptionsParser do
 
       context 'if three or more required options have not been specified' do
         before do
-          easy_options_parser.set_argv(['-i', '23.4'])
+          easy_options_parser.argv = ['-i', '23.4']
           easy_options_parser.parse
         end
 
@@ -125,13 +127,13 @@ context EasyOptionsParser do
       end
 
       it 'does not check missing options if --help option passed to cli' do
-        easy_options_parser.set_argv(['--help'])
+        easy_options_parser.argv = ['--help']
         easy_options_parser.parse
         expect(command_result).not_to match(/must be specified/)
       end
 
       it 'does not check missing options if -h help option passed to cli' do
-        easy_options_parser.set_argv(['-h'])
+        easy_options_parser.argv = ['-h']
         easy_options_parser.parse
         expect(command_result).not_to match(/must be specified/)
       end
